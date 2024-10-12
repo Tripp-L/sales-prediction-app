@@ -1,0 +1,5 @@
+[core]
+    sshCommand = ssh -o ControlMaster=no
+[credential]
+    helper = 
+
