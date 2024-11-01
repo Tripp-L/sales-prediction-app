@@ -31,48 +31,80 @@
             <div class="col-md-12">
                 <div class="card input-card">
                     <div class="card-body">
-                        <h3>Input Parameters</h3>
                         <form id="prediction-form">
-                            <div class="row">
-                                <div class="col-md-6">
+                            <div class="input-parameters">
+                                <h2>Input Parameters</h2>
+                                
+                                <div class="input-grid">
+                                    <!-- Website Traffic -->
                                     <div class="form-group">
                                         <label for="traffic">Website Traffic (Daily Visitors)</label>
                                         <input type="number" class="form-control" id="traffic" name="traffic" 
                                                required min="0" placeholder="e.g., 5000">
                                     </div>
-                                </div>
-                                <div class="col-md-6">
+
+                                    <!-- Marketing Spend -->
                                     <div class="form-group">
                                         <label for="marketing">Marketing Spend ($)</label>
-                                        <input type="number" class="form-control" id="marketing" name="marketing" 
-                                               required min="0" placeholder="e.g., 1000">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">$</div>
+                                            <input type="number" class="form-control" id="marketing" name="marketing" 
+                                                   required min="0" placeholder="e.g., 1000">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-4">
+
+                                <div class="input-grid">
+                                    <!-- Advertising Budget -->
                                     <div class="form-group">
                                         <label for="advertising">Advertising Budget ($)</label>
-                                        <input type="number" class="form-control" id="advertising" name="advertising" 
-                                               required min="0" placeholder="e.g., 2000">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">$</div>
+                                            <input type="number" class="form-control" id="advertising" name="advertising" 
+                                                   required min="0" placeholder="e.g., 2000">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
+
+                                    <!-- Social Media Spend -->
                                     <div class="form-group">
                                         <label for="social">Social Media Spend ($)</label>
-                                        <input type="number" class="form-control" id="social" name="social" 
-                                               required min="0" placeholder="e.g., 500">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">$</div>
+                                            <input type="number" class="form-control" id="social" name="social" 
+                                                   required min="0" placeholder="e.g., 500">
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+
+                                <div class="input-grid">
+                                    <!-- Other Expenses -->
+                                    <div class="form-group">
+                                        <label for="other_expenses">Other Expenses ($)</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">$</div>
+                                            <input type="number" class="form-control optional-field" id="other_expenses" 
+                                                   name="other_expenses" min="0" placeholder="e.g., 300">
+                                        </div>
+                                        <span class="helper-text">Optional additional expenses</span>
+                                    </div>
+
+                                    <!-- Expense Description -->
+                                    <div class="form-group">
+                                        <label for="expense_description">Expense Description</label>
+                                        <input type="text" class="form-control optional-field" id="expense_description" 
+                                               name="expense_description" placeholder="e.g., Software subscriptions">
+                                        <span class="helper-text">Optional description for other expenses</span>
+                                    </div>
+                                </div>
+
+                                <div class="input-grid">
+                                    <!-- Prediction Date -->
                                     <div class="form-group">
                                         <label for="date">Prediction Date</label>
                                         <input type="date" class="form-control" id="date" name="date" required>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
+
+                                    <!-- ML Model Selection -->
                                     <div class="form-group">
                                         <label for="model">ML Model Selection</label>
                                         <select class="form-control" id="model" name="model" required>
@@ -84,11 +116,9 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <button type="submit" class="btn btn-primary predict-btn">
-                                        Predict Sales
-                                    </button>
-                                </div>
+
+                                <!-- Predict Button -->
+                                <button type="submit" class="predict-btn">Predict Sales</button>
                             </div>
                         </form>
                     </div>
