@@ -22,14 +22,16 @@ body {
 
 .dashboard-header h1 {
     color: var(--primary-color);
-    font-weight: 300;
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
 }
 
 .dashboard-header p {
     color: var(--text-light);
-    opacity: 0.8;
+    font-size: 1.2rem;
+    opacity: 0.9;
 }
 
 .card {
@@ -67,7 +69,8 @@ body {
     background-color: var(--primary-color);
     border: none;
     padding: 0.75rem 2rem;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    font-weight: 400;
     border-radius: 8px;
     margin-top: 1.85rem;
     width: 100%;
@@ -88,16 +91,18 @@ body {
 
 .metric-card h4 {
     color: var(--text-light);
-    font-size: 1rem;
+    font-size: 1.2rem;
+    font-weight: 500;
     margin-bottom: 1rem;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .metric-value {
-    color: var(--primary-color);
-    font-size: 2rem;
-    font-weight: bold;
+    color: #2ecc71;
+    font-size: 2.2rem;
+    font-weight: 600;
     margin: 0;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
 }
 
 .visualization-container {
@@ -157,4 +162,365 @@ body {
     .visualization-container {
         height: 300px;
     }
-} 
+}
+
+/* Enhanced dropdown styling */
+select.form-control {
+    background-color: #1a1a1a;
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+    cursor: pointer;
+    padding: 0.75rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    transition: all 0.3s ease;
+}
+
+/* Dropdown hover effect */
+select.form-control:hover {
+    background-color: #2d2d2d;
+    border-color: #27ae60;
+    box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+}
+
+/* Dropdown focus effect */
+select.form-control:focus {
+    background-color: #1a1a1a;
+    border-color: #27ae60;
+    box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+    color: #2ecc71;
+}
+
+/* Dropdown options styling */
+select.form-control option {
+    background-color: #1a1a1a;
+    color: #2ecc71;
+    padding: 1rem;
+}
+
+/* Dropdown option hover effect */
+select.form-control option:hover,
+select.form-control option:focus,
+select.form-control option:active,
+select.form-control option:checked {
+    background-color: #2d2d2d;
+    color: #2ecc71;
+}
+
+/* Add a subtle transition for smooth hover effects */
+select.form-control {
+    transition: all 0.3s ease;
+}
+
+/* Card and form container styling */
+.input-card {
+    position: relative;
+    z-index: 2;  /* Higher z-index for the input section */
+    margin-bottom: 2rem;  /* Add more space below the input card */
+}
+
+/* Dropdown container styling */
+.form-group {
+    position: relative;
+}
+
+/* Results container styling */
+.results-card {
+    position: relative;
+    z-index: 1;  /* Lower z-index for the results section */
+}
+
+/* Dropdown options container */
+select.form-control option {
+    background-color: #1a1a1a;
+    color: #2ecc71;
+    padding: 1rem;
+}
+
+/* Ensure dropdown appears above other elements */
+select.form-control:focus {
+    background-color: #1a1a1a;
+    border-color: #27ae60;
+    box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+    color: #2ecc71;
+    z-index: 3;  /* Highest z-index when focused */
+}
+
+/* Add more space between input and results sections */
+.row.mt-4 {
+    margin-top: 2rem !important;  /* Increase top margin */
+}
+
+/* Hover effects */
+select.form-control:hover {
+    background-color: #2d2d2d;
+    border-color: #27ae60;
+}
+
+select.form-control option:hover,
+select.form-control option:focus,
+select.form-control option:active,
+select.form-control option:checked {
+    background-color: #2d2d2d;
+    color: #2ecc71;
+}
+
+/* Enhanced typography */
+.dashboard-header h1 {
+    color: #2ecc71;
+    font-weight: 500;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
+.dashboard-header p {
+    color: #e0e0e0;
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Input labels */
+.form-group label {
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+/* Placeholder text */
+.form-control::placeholder {
+    color: #888;
+    font-size: 1rem;
+    opacity: 0.7;
+}
+
+/* Results section headers */
+.results-card h3 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    color: #e0e0e0;
+}
+
+/* Metric card headers */
+.metric-card h4 {
+    color: #e0e0e0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+/* Metric values */
+.metric-value {
+    color: #2ecc71;
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+}
+
+/* Section titles */
+h3, .section-title {
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #e0e0e0;
+    margin-bottom: 1.5rem;
+}
+
+/* Input field text */
+.form-control {
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+/* Dropdown text */
+select.form-control {
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+/* Add better text rendering */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Style for the optional fields */
+.text-muted {
+    color: #888 !important;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Style for optional input fields */
+input[type="number"]:not([required]),
+input[type="text"]:not([required]) {
+    border-color: rgba(46, 204, 113, 0.5);
+}
+
+/* Optional field hover effect */
+input[type="number"]:not([required]):hover,
+input[type="text"]:not([required]):hover {
+    border-color: #2ecc71;
+}
+
+/* Optional field focus effect */
+input[type="number"]:not([required]):focus,
+input[type="text"]:not([required]):focus {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+}
+
+/* Input Parameters Section */
+.input-parameters {
+    background-color: #1a1a1a;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Section Title */
+.input-parameters h2 {
+    color: #2ecc71;
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(46, 204, 113, 0.3);
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Labels */
+.form-group label {
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+    display: block;
+}
+
+/* Input Fields */
+.form-control {
+    background-color: #2d2d2d;
+    border: 2px solid #2d2d2d;
+    border-radius: 10px;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    padding: 0.8rem 1rem;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+/* Input Hover State */
+.form-control:hover {
+    background-color: #333333;
+    border-color: rgba(46, 204, 113, 0.5);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.1);
+}
+
+/* Input Focus State */
+.form-control:focus {
+    background-color: #333333;
+    border-color: #2ecc71;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+    color: #ffffff;
+}
+
+/* Optional Fields */
+.optional-field {
+    border-color: rgba(46, 204, 113, 0.3);
+}
+
+/* Helper Text */
+.helper-text {
+    color: #888;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+/* Date Input Specific */
+input[type="date"] {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+}
+
+/* ML Model Selection Dropdown */
+select.form-control {
+    cursor: pointer;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+/* Predict Button */
+.predict-btn {
+    background-color: #2ecc71;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    width: 100%;
+    transition: all 0.3s ease;
+    margin-top: 1.5rem;
+}
+
+.predict-btn:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+}
+
+/* Grid Layout */
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-control {
+        font-size: 1rem;
+        padding: 0.7rem 0.9rem;
+    }
+}
+
+/* Input Groups (for currency inputs) */
+.input-group {
+    position: relative;
+}
+
+.input-group-prepend {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #2ecc71;
+    font-weight: 500;
+}
+
+.input-group .form-control {
+    padding-left: 2.5rem;
+}

@@ -8,10 +8,8 @@ from lightgbm import LGBMRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime
 import logging
-import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,15 +30,19 @@ def generate_ecommerce_data():
     data = pd.DataFrame({
         'website_traffic': np.random.randint(1000, 10000, n_samples),
         'marketing_spend': np.random.uniform(500, 5000, n_samples),
-        'date': pd.date_range(start='2023-01-01', periods=n_samples),
         'advertising_budget': np.random.uniform(1000, 10000, n_samples),
-        'social_media_spend': np.random.uniform(200, 2000, n_samples)
+        'social_media_spend': np.random.uniform(200, 2000, n_samples),
+        'date': pd.date_range(start='2023-01-01', periods=n_samples)
     })
     
     # Create seasonal effects
+    data['day_of_week'] = data['date'].dt.dayofweek
+    data['month'] = data['date'].dt.month
+    data['is_weekend'] = (data['date'].dt.dayofweek >= 5).astype(int)
+    
+    # Generate target variable (sales)
     seasonal_effect = 2000 * np.sin(2 * np.pi * data['date'].dt.dayofyear / 365)
     
-    # Create target variable (sales)
     data['sales'] = (
         0.3 * data['website_traffic'] +
         0.5 * data['marketing_spend'] +
@@ -50,59 +52,81 @@ def generate_ecommerce_data():
         np.random.normal(0, 1000, n_samples)
     )
     
-    # Add date-based features
-    data['day_of_week'] = data['date'].dt.dayofweek
-    data['month'] = data['date'].dt.month
-    data['is_weekend'] = data['date'].dt.dayofweek.isin([5, 6]).astype(int)
-    
     return data
 
-def create_sales_trend_plot(data):
-    """Create sales trend visualization"""
-    fig = go.Figure()
-    
-    fig.add_trace(go.Scatter(
-        x=data['date'],
-        y=data['sales'],
-        mode='lines',
-        name='Historical Sales',
-        line=dict(color='#2ecc71')
+def create_gauge_chart(prediction, max_value):
+    """Create gauge chart for prediction visualization"""
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = prediction,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': "Predicted Sales ($)", 'font': {'color': "#2ecc71", 'size': 24}},
+        gauge = {
+            'axis': {'range': [0, max_value], 'tickcolor': "#2ecc71"},
+            'bar': {'color': "#2ecc71"},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "#2ecc71",
+            'steps': [
+                {'range': [0, max_value/3], 'color': '#1a1a1a'},
+                {'range': [max_value/3, max_value*2/3], 'color': '#262626'},
+                {'range': [max_value*2/3, max_value], 'color': '#333333'}
+            ]
+        }
     ))
     
     fig.update_layout(
-        title='Historical Sales Trend',
-        xaxis_title='Date',
-        yaxis_title='Sales ($)',
-        template='plotly_dark',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        paper_bgcolor = "rgba(0,0,0,0)",
+        font = {'color': "#2ecc71", 'family': "Arial"}
     )
     
     return fig
 
-def create_prediction_plot(prediction, model_type):
-    """Create prediction visualization"""
+def create_sales_trend_plot(data):
+    """Create a sales trend visualization"""
     fig = go.Figure()
     
-    fig.add_trace(go.Indicator(
-        mode="number+gauge+delta",
-        value=prediction,
-        delta={'reference': 5000},  # Example reference value
-        gauge={
-            'axis': {'range': [None, 10000]},
-            'bar': {'color': "#2ecc71"},
-            'steps': [
-                {'range': [0, 3000], 'color': 'lightgray'},
-                {'range': [3000, 7000], 'color': 'gray'}
-            ]
-        },
-        title={'text': f"Predicted Sales ({model_type})"}
+    # Add sales trend line
+    fig.add_trace(go.Scatter(
+        x=data['date'],
+        y=data['sales'],
+        name='Historical Sales',
+        line=dict(color='#2ecc71', width=2),
+        mode='lines'
     ))
     
+    # Update layout
     fig.update_layout(
-        template='plotly_dark',
+        title={
+            'text': 'Sales Trend Over Time',
+            'y':0.95,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top',
+            'font': dict(size=20, color='#2ecc71')
+        },
         paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)'
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#e0e0e0'),
+        xaxis=dict(
+            title='Date',
+            gridcolor='rgba(255,255,255,0.1)',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title='Sales ($)',
+            gridcolor='rgba(255,255,255,0.1)',
+            showgrid=True
+        ),
+        hovermode='x unified',
+        showlegend=True,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.01,
+            font=dict(color='#e0e0e0')
+        )
     )
     
     return fig
@@ -137,23 +161,24 @@ def predict():
         input_scaled = feature_scaler.transform(input_data)
         
         # Make prediction
-        if model_type not in trained_models:
-            raise ValueError(f"Model {model_type} not found")
-            
-        prediction = float(trained_models[model_type].predict(input_scaled)[0])
+        model = trained_models[model_type]
+        prediction = float(model.predict(input_scaled)[0])
         
-        # Create visualization
-        fig = create_prediction_plot(prediction, model_type)
+        # Calculate confidence score (simplified)
+        confidence_score = 0.9  # Placeholder
+        
+        # Create gauge chart
+        max_value = prediction * 1.5
+        fig = create_gauge_chart(prediction, max_value)
         
         return jsonify({
             'prediction': prediction,
-            'accuracy': 0.95,
-            'confidence': 0.90,
+            'accuracy': model.score(X_test_scaled, y_test),
+            'confidence': confidence_score,
             'plot': fig.to_dict()
         })
         
     except Exception as e:
-        logger.error(f"Error in prediction: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 def get_model_comparisons(input_data):
@@ -228,10 +253,8 @@ if __name__ == '__main__':
         X = data[feature_cols]
         y = data['sales']
         
-        # Split data
+        # Split and scale data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        # Scale features
         feature_scaler = StandardScaler()
         X_train_scaled = feature_scaler.fit_transform(X_train)
         X_test_scaled = feature_scaler.transform(X_test)
