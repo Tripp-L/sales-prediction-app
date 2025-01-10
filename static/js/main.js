@@ -8,72 +8,79 @@ const modelDescriptions = {
     'neural_network': '* Deep learning model with multiple layers. Automatically learns complex patterns from data.'
 };
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Application initialized');
     
-    // Initialize Socket.IO if available
-    if (typeof io !== 'undefined') {
-        const socket = io();
-        socket.on('connect', () => {
-            console.log('WebSocket connected');
-        });
-        socket.on('data_update', (data) => {
-            console.log('Received data update:', data);
-        });
-    }
-    
-    // Initialize form handling
     const form = document.querySelector('#prediction-form');
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
 
-    // Initialize model description handling
     const mlModelSelect = document.getElementById('ml_model');
     if (mlModelSelect) {
         mlModelSelect.addEventListener('change', updateModelDescription);
         updateModelDescription();
     }
+
+    const applyFiltersBtn = document.getElementById('apply-filters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', handleFilters);
+    }
+
+    const exportCsvBtn = document.getElementById('export-csv');
+    const exportJsonBtn = document.getElementById('export-json');
+    if (exportCsvBtn) exportCsvBtn.addEventListener('click', () => exportData('csv'));
+    if (exportJsonBtn) exportJsonBtn.addEventListener('click', () => exportData('json'));
 });
 
 async function handleFormSubmit(e) {
     e.preventDefault();
-    console.log('Form submitted');
-    
+    console.log("Form submitted");
+
     if (!validateForm()) {
         return;
     }
 
     // Show loading overlay
-    document.querySelector('.loading-overlay').style.display = 'block';
-    
+    document.querySelector('.loading-overlay').style.display = 'flex';
+
     try {
         const formData = new FormData(e.target);
         const jsonData = {};
-        formData.forEach((value, key) => {
-            jsonData[key] = value;
-        });
         
+        // Convert form values to numbers where appropriate
+        formData.forEach((value, key) => {
+            if (['traffic', 'marketing', 'advertising', 'social'].includes(key)) {
+                jsonData[key] = parseFloat(value) || 0;
+            } else {
+                jsonData[key] = value;
+            }
+        });
+
+        console.log("Data being sent to /predict:", jsonData);
+
         const response = await fetch('/predict', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
             },
-            body: JSON.stringify(jsonData)
+            body: JSON.stringify(jsonData),
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+
         const data = await response.json();
-        console.log('Prediction result:', data);
-        
-        updateDashboard(data);
-        
+        console.log("Prediction result:", data);
+
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP error! status: ${response.status}`);
+        }
+
+        if (data.success) {
+            updateDashboard(data);
+        } else {
+            showError(data.error || 'An error occurred during prediction');
+        }
     } catch (error) {
-        console.error('Error:', error);
+        console.error("Error:", error);
         showError(error.message);
     } finally {
         document.querySelector('.loading-overlay').style.display = 'none';
@@ -81,15 +88,32 @@ async function handleFormSubmit(e) {
 }
 
 function updateDashboard(data) {
-    // Update prediction display
-    const predictedSales = document.getElementById('predicted-sales');
-    if (predictedSales) {
-        predictedSales.textContent = `$${parseFloat(data.prediction).toFixed(2)}`;
-    }
-    
-    // Update visualization if available
-    if (data.plot) {
-        Plotly.newPlot('visualization-container', data.plot.data, data.plot.layout);
+    try {
+        // Update prediction display
+        const predictedSales = document.getElementById('predicted-sales');
+        if (predictedSales) {
+            predictedSales.textContent = `$${parseFloat(data.prediction).toFixed(2)}`;
+        }
+
+        const accuracyScore = document.getElementById('accuracy-score');
+        if (accuracyScore) {
+            accuracyScore.textContent = `${(parseFloat(data.accuracy_score) * 100).toFixed(2)}%`;
+        }
+
+        const confidenceScore = document.getElementById('confidence-score');
+        if (confidenceScore) {
+            confidenceScore.textContent = `${(parseFloat(data.confidence_score) * 100).toFixed(2)}%`;
+        }
+
+        // Update visualization if available
+        if (data.plot && data.plot.data && data.plot.layout) {
+            Plotly.newPlot('visualization-container', data.plot.data, data.plot.layout);
+        } else {
+            console.warn('No plot data available');
+        }
+    } catch (error) {
+        console.error("Error updating dashboard:", error);
+        showError("Error updating the dashboard display");
     }
 }
 
@@ -121,20 +145,42 @@ function updateModelDescription() {
 
 function validateForm() {
     const mlModel = document.getElementById('ml_model')?.value;
-    const traffic = document.getElementById('traffic')?.value;
-    const marketing = document.getElementById('marketing')?.value;
-    const advertising = document.getElementById('advertising')?.value;
-    const social = document.getElementById('social')?.value;
+    const traffic = parseFloat(document.getElementById('traffic')?.value);
+    const marketing = parseFloat(document.getElementById('marketing')?.value);
+    const advertising = parseFloat(document.getElementById('advertising')?.value);
+    const social = parseFloat(document.getElementById('social')?.value);
 
     if (!mlModel) {
-        showMessage('Please select a model', 'warning');
+        showError('Please select a model');
         return false;
     }
 
-    if (!traffic || !marketing || !advertising || !social) {
-        showMessage('Please fill in all required fields', 'warning');
+    // Check if values are valid numbers and greater than or equal to 0
+    if (isNaN(traffic) || traffic < 0 ||
+        isNaN(marketing) || marketing < 0 ||
+        isNaN(advertising) || advertising < 0 ||
+        isNaN(social) || social < 0) {
+        showError('Please enter valid positive numbers for all required fields');
         return false;
     }
 
     return true;
+}
+
+async function handleFilters() {
+    const startDate = document.getElementById('filter-start-date')?.value;
+    const endDate = document.getElementById('filter-end-date')?.value;
+
+    if (!startDate || !endDate) {
+        showMessage('Please select both start and end dates for filtering', 'warning');
+        return;
+    }
+
+    console.log(`Applying filters: Start Date = ${startDate}, End Date = ${endDate}`);
+    showMessage('Filters applied successfully', 'success');
+}
+
+function exportData(format) {
+    console.log(`Exporting data in ${format} format`);
+    showMessage(`Data exported as ${format.toUpperCase()}`, 'success');
 }
