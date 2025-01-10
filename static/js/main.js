@@ -31,6 +31,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const exportJsonBtn = document.getElementById('export-json');
     if (exportCsvBtn) exportCsvBtn.addEventListener('click', () => exportData('csv'));
     if (exportJsonBtn) exportJsonBtn.addEventListener('click', () => exportData('json'));
+
+    // Visualization type selector
+    const vizButtons = document.querySelectorAll('.viz-type-selector button');
+    vizButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            vizButtons.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            const vizType = e.target.dataset.viz;
+            console.log(`Visualization button clicked: ${vizType}`);
+            
+            updateVisualizationType(vizType);
+        });
+    });
+
+    // Real-time updates toggle
+    const updateToggle = document.getElementById('enable-updates');
+    let updateInterval;
+    updateToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            updateInterval = setInterval(fetchLatestData, 30000); // Update every 30 seconds
+            updateLastUpdateTime();
+        } else {
+            clearInterval(updateInterval);
+        }
+    });
 });
 
 async function handleFormSubmit(e) {
@@ -122,12 +150,19 @@ function showError(message) {
 }
 
 function showMessage(message, type = 'info') {
-    const messageDiv = document.getElementById('message-container') || createMessageContainer();
-    messageDiv.textContent = message;
+    const messageDiv = document.createElement('div');
     messageDiv.className = `alert alert-${type} mt-3`;
-    setTimeout(() => messageDiv.remove(), 5000);
+    messageDiv.textContent = message;
+    
+    // Find a suitable container for the message
+    const container = document.querySelector('.visualization-container').parentElement;
+    container.insertBefore(messageDiv, container.firstChild);
+    
+    // Remove the message after 3 seconds
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
 }
-
 function createMessageContainer() {
     const container = document.createElement('div');
     container.id = 'message-container';
@@ -167,20 +202,124 @@ function validateForm() {
     return true;
 }
 
-async function handleFilters() {
-    const startDate = document.getElementById('filter-start-date')?.value;
-    const endDate = document.getElementById('filter-end-date')?.value;
+function handleFilters() {
+    const startDate = document.getElementById('filter-start-date').value;
+    const endDate = document.getElementById('filter-end-date').value;
+    const selectedMetrics = Array.from(document.getElementById('metrics-select').selectedOptions)
+        .map(option => option.value);
 
     if (!startDate || !endDate) {
-        showMessage('Please select both start and end dates for filtering', 'warning');
+        showMessage('Please select both start and end dates', 'warning');
         return;
     }
 
-    console.log(`Applying filters: Start Date = ${startDate}, End Date = ${endDate}`);
-    showMessage('Filters applied successfully', 'success');
+    // Send filter request to server
+    fetch('/apply_filters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            startDate,
+            endDate,
+            metrics: selectedMetrics
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateVisualization(data);
+            showMessage('Filters applied successfully', 'success');
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(error => {
+        showError('Error applying filters: ' + error.message);
+    });
 }
 
 function exportData(format) {
-    console.log(`Exporting data in ${format} format`);
-    showMessage(`Data exported as ${format.toUpperCase()}`, 'success');
+    const startDate = document.getElementById('filter-start-date').value;
+    const endDate = document.getElementById('filter-end-date').value;
+    const includeAnalysis = document.getElementById('include-analysis').checked;
+
+    fetch('/export_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            format,
+            startDate,
+            endDate,
+            includeAnalysis
+        })
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sales_data_${format}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        showError('Error exporting data: ' + error.message);
+    });
 }
+
+function updateVisualizationType(type) {
+    console.log(`Updating visualization to: ${type}`);
+    
+    fetch('/update_visualization', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            Plotly.newPlot('visualization-container', 
+                data.plot.data, 
+                data.plot.layout,
+                {responsive: true}
+            );
+            showMessage('Visualization updated successfully', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to update visualization');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating visualization:', error);
+        showError('Error updating visualization: ' + error.message);
+    });
+}
+
+function updateLastUpdateTime() {
+    const timeElement = document.querySelector('.last-update-time');
+    timeElement.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+}
+
+function fetchLatestData() {
+    fetch('/get_latest_data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateDashboard(data);
+                updateLastUpdateTime();
+            }
+        })
+        .catch(error => console.error('Error fetching latest data:', error));
+}
+

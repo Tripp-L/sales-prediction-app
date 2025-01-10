@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import json
 import plotly.graph_objs as go
 from model import predict_sales
+import pandas as pd
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -95,6 +97,143 @@ def predict():
         return jsonify({
             "success": False,
             "error": f"{type(e).__name__}: {str(e)}"
+        }), 400
+
+
+@app.route("/apply_filters", methods=["POST"])
+def apply_filters():
+    try:
+        data = request.get_json()
+        start_date = data.get('startDate')
+        end_date = data.get('endDate')
+        metrics = data.get('metrics', [])
+
+        # Here you would filter your actual data based on the parameters
+        filtered_data = filter_data(start_date, end_date, metrics)
+        
+        return jsonify({
+            "success": True,
+            "data": filtered_data
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+
+
+@app.route("/export_data", methods=["POST"])
+def export_data():
+    try:
+        data = request.get_json()
+        format_type = data.get('format')
+        include_analysis = data.get('includeAnalysis', False)
+        
+        # Get filtered data
+        filtered_data = get_filtered_data(data)
+        
+        if format_type == 'csv':
+            output = BytesIO()
+            filtered_data.to_csv(output, index=False)
+            output.seek(0)
+            return send_file(
+                output,
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name='sales_data.csv'
+            )
+        elif format_type == 'json':
+            return jsonify(filtered_data)
+        elif format_type == 'excel':
+            output = BytesIO()
+            filtered_data.to_excel(output, index=False)
+            output.seek(0)
+            return send_file(
+                output,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name='sales_data.xlsx'
+            )
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+
+
+@app.route("/update_visualization", methods=["POST"])
+def update_visualization():
+    try:
+        data = request.get_json()
+        viz_type = data.get('type')
+        
+        # Create base data structure for visualization
+        plot_data = {
+            'data': [],
+            'layout': {
+                'title': '',
+                'showlegend': True,
+                'template': 'plotly_dark'
+            }
+        }
+        
+        if viz_type == 'sales_trend':
+            # Simple line chart for sales trend
+            plot_data['data'] = [{
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'x': list(range(10)),  # Replace with actual dates
+                'y': list(range(10)),  # Replace with actual sales data
+                'name': 'Sales Trend'
+            }]
+            plot_data['layout']['title'] = 'Sales Trend Over Time'
+            
+        elif viz_type == 'advanced_dashboard':
+            # Multiple traces for advanced dashboard
+            plot_data['data'] = [
+                {
+                    'type': 'bar',
+                    'x': ['Traffic', 'Marketing', 'Advertising', 'Social'],
+                    'y': [100, 200, 150, 300],  # Replace with actual metrics
+                    'name': 'Current Period'
+                },
+                {
+                    'type': 'scatter',
+                    'mode': 'lines+markers',
+                    'x': ['Traffic', 'Marketing', 'Advertising', 'Social'],
+                    'y': [90, 180, 160, 280],  # Replace with actual historical data
+                    'name': 'Previous Period'
+                }
+            ]
+            plot_data['layout']['title'] = 'Advanced Performance Dashboard'
+            plot_data['layout']['barmode'] = 'group'
+            
+        return jsonify({
+            "success": True,
+            "plot": plot_data
+        })
+        
+    except Exception as e:
+        print(f"Visualization error: {str(e)}")  # Add logging
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+
+
+@app.route("/get_latest_data")
+def get_latest_data():
+    try:
+        # Fetch and return the latest data
+        latest_data = fetch_latest_data()
+        return jsonify({
+            "success": True,
+            "data": latest_data
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
         }), 400
 
 
